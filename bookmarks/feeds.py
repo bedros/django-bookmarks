@@ -1,4 +1,7 @@
-from atomformat import Feed
+#from atomformat import Feed
+# to add categories to feeds, don't know to do it with atomformat library
+from django.contrib.syndication.feeds import Feed
+from django.utils.feedgenerator import Atom1Feed
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -11,11 +14,22 @@ from datetime import datetime
 ITEMS_PER_FEED = getattr(settings, 'PINAX_ITEMS_PER_FEED', 20)
 
 class BookmarkFeed(Feed):
+    def link(self):
+        absolute_url = reverse('bookmarks.views.bookmarks')
+        complete_url = "http://%s%s" % (
+                Site.objects.get_current().domain,
+                absolute_url,
+            )
+        return complete_url
+    
     def item_id(self, bookmark):
         return bookmark.url
     
     def item_title(self, bookmark):
         return bookmark.description
+    
+    def item_description(self, bookmark):
+        return linebreaks(escape(bookmark.note))
     
     def item_updated(self, bookmark):
         return bookmark.added
@@ -31,7 +45,29 @@ class BookmarkFeed(Feed):
     
     def item_authors(self, bookmark):
         return [{"name" : bookmark.adder.username}]
+    
+#    def author_email():
+#        return bookmark.adder.email
+#    def author_link():
+#        return bookmark.adder.website
 
+    def item_pubdate(self, bookmark):
+        return bookmark.added
+
+    def item_categories(self, bookmark):
+        from tagging.models import Tag
+#        return Tag.objects.get_for_object(bookmark)
+        return bookmark.all_tags()
+
+    def item_link(self, bookmark):
+        return bookmark.url
+
+    def item_description(self, bookmark):
+        return bookmark.description
+
+    def items(self):
+        print "in bookmarkFeed"
+        return Bookmark.objects.order_by("-added")[:ITEMS_PER_FEED]
     def feed_id(self):
         return 'http://%s/feeds/bookmarks/' % Site.objects.get_current().domain
     
@@ -57,3 +93,6 @@ class BookmarkFeed(Feed):
 
     def items(self):
         return Bookmark.objects.order_by("-added")[:ITEMS_PER_FEED]
+    
+class AtomBookmarkFeed(BookmarkFeed):
+    feed_type = Atom1Feed
