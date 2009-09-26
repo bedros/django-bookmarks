@@ -1,0 +1,21 @@
+
+<html>
+<body>
+
+<h1>Bookmarks</h1>
+
+{% for bookmark in bookmarks %}
+<div class="bookmark">
+  <h4><a href="{{ bookmark.get_absolute_url }}" title="{{ bookmark.description }}">{{ bookmark.description }}</a></h4>
+  <p class="author">{{ bookmark.adder.username }}</p>
+  <p class="url"><a href="{{ bookmark.url }}">{{ bookmark.url }}</a></p>
+  <p class="created">{{ bookmark.added|date:"F j, Y" }}</p>
+
+  <p class="notes">
+    <label>Notes:</label>{{ bookmark.note }}
+  </p>
+</div>
+{% endfor %}
+
+</body>
+</html>

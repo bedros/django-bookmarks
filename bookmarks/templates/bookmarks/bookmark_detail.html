@@ -1,0 +1,17 @@
+
+<html>
+<body>
+
+<div class="bookmark">
+  <h4>{{ bookmark.description }}</h4>
+  <p class="author">{{ bookmark.adder.username }}</p>
+  <p class="url"><a href="{{ bookmark.url }}">{{ bookmark.url }}</a></p>
+  <p class="created">{{ bookmark.added|date:"F j, Y" }}</p>
+
+  <p class="notes">
+    <label>Notes:</label>{{ bookmark.note }}
+  </p>
+</div>
+
+</body>
+</html>
