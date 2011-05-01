@@ -1,3 +1,17 @@
+"""
+A Bookmark is unique to a URL whereas a BookmarkInstance represents a
+particular Bookmark saved by a particular person.
+
+This not only enables more than one user to save the same URL as a
+bookmark but allows for per-user tagging.
+"""
+
+# at the moment Bookmark has some fields that are determined by the
+# first person to add the bookmark (the adder) but later we may add
+# some notion of voting for the best description and note from
+# amongst those in the instances.
+
+
 from datetime import datetime
 import urlparse
 
@@ -10,17 +24,14 @@ from django.contrib.auth.models import User
 from tagging.fields import TagField
 from tagging.models import Tag
 
-"""
-A Bookmark is unique to a URL whereas a BookmarkInstance represents a
-particular Bookmark saved by a particular person.
+from django.conf import settings
+BOOKMARK_VERIFY_EXISTS = getattr(settings, "BOOKMARK_VERIFY_EXISTS", False)
 
-This not only enables more than one user to save the same URL as a
-bookmark but allows for per-user tagging.
-"""
 
 class Bookmark(models.Model):
 
-    url = models.URLField(unique=True)
+    # URL is set to false per dc-special ticket #14
+    url = models.URLField(verify_exists=BOOKMARK_VERIFY_EXISTS,unique=True)
     description = models.CharField(_('description'), max_length=100)
     slug = models.SlugField()
     note = models.TextField(_('note'), blank=True)
@@ -80,16 +91,20 @@ class BookmarkInstance(models.Model):
 
     tags = TagField()
 
-    def save(self, force_insert=False, force_update=False):
-        try:
-            bookmark = Bookmark.objects.get(url=self.url)
-        except Bookmark.DoesNotExist:
-            # has_favicon=False is temporary as the view for adding bookmarks will change it
-            bookmark = Bookmark(url=self.url, description=self.description, note=self.note, has_favicon=False, adder=self.user)
-            bookmark.save()
-        self.bookmark = bookmark
-        super(BookmarkInstance, self).save(force_insert, force_update)
-
+    def save(self, force_insert=False, force_update=False,edit=False):
+        if edit:
+            super(BookmarkInstance, self).save(force_insert, True)            
+        else:
+            # new bookmark/bookmark instance so add the new bookmark
+            try:
+                bookmark = Bookmark.objects.get(url=self.url)
+            except Bookmark.DoesNotExist:
+                # has_favicon=False is temporary as the view for adding bookmarks will change it
+                bookmark = Bookmark(url=self.url, description=self.description, note=self.note, has_favicon=False, adder=self.user)
+                bookmark.save()
+            self.bookmark = bookmark
+            super(BookmarkInstance, self).save(force_insert, force_update)
+    
     def delete(self):
         bookmark = self.bookmark
         super(BookmarkInstance, self).delete()
