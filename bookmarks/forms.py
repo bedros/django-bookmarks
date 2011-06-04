@@ -1,8 +1,6 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from tagging.forms import TagField
-
 from bookmarks.models import Bookmark, BookmarkInstance
 
 from django.conf import settings
@@ -14,7 +12,6 @@ class BookmarkInstanceForm(forms.ModelForm):
     url = forms.URLField(label = "URL", verify_exists=BOOKMARK_VERIFY_EXISTS, widget=forms.TextInput(attrs={"size": 40}))
     description = forms.CharField(max_length=100, widget=forms.TextInput(attrs={"size": 40}))
     redirect = forms.BooleanField(label="Redirect", required=False)
-    tags = TagField(label="Tags", required=False)
     
     def __init__(self, user=None,  *args, **kwargs):
         self.user = user
@@ -49,7 +46,6 @@ class BookmarkInstanceEditForm(forms.ModelForm):
 
     description = forms.CharField(max_length=100, widget=forms.TextInput(attrs={"size": 40}))
     redirect = forms.BooleanField(label="Redirect", required=False)
-    tags = TagField(label="Tags", required=False)
 
     def __init__(self, user=None,  *args, **kwargs):
         self.user = user

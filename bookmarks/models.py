@@ -21,8 +21,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth.models import User
 
-from tagging.fields import TagField
-from tagging.models import Tag
+from taggit.managers import TaggableManager
 
 from django.conf import settings
 BOOKMARK_VERIFY_EXISTS = getattr(settings, "BOOKMARK_VERIFY_EXISTS", False)
@@ -42,7 +41,7 @@ class Bookmark(models.Model):
     adder = models.ForeignKey(User, related_name="added_bookmarks", verbose_name=_('adder'))
     added = models.DateTimeField(_('added'), default=datetime.now)
 
-    tags = TagField()
+    tags = TaggableManager()
 
     def get_favicon_url(self, force=False):
         """
@@ -57,12 +56,6 @@ class Bookmark(models.Model):
             favicon_url = urlparse.urljoin(base_url, 'favicon.ico')
             return favicon_url
         return None
-
-    def all_tags(self, min_count=False):
-        return Tag.objects.usage_for_model(BookmarkInstance, counts=False, min_count=None, filters={'bookmark': self.id})
-
-    def all_tags_with_counts(self, min_count=False):
-        return Tag.objects.usage_for_model(BookmarkInstance, counts=True, min_count=None, filters={'bookmark': self.id})
 
     def __unicode__(self):
         return self.url
@@ -89,7 +82,7 @@ class BookmarkInstance(models.Model):
     description = models.CharField(_('description'), max_length=100)
     note = models.TextField(_('note'), blank=True)
 
-    tags = TagField()
+    tags = TaggableManager()
 
     def save(self, force_insert=False, force_update=False,edit=False):
         if edit:
