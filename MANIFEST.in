@@ -1,2 +1,7 @@
 include AUTHORS
 include LICENSE
+include README
+
+recursive-include bookmarks/templates/bookmarks/ *.html
+
+prune example
