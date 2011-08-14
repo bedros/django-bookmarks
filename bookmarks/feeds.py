@@ -1,29 +1,32 @@
-#from atomformat import Feed
-# to add categories to feeds, don't know to do it with atomformat library
-from django.contrib.syndication.feeds import Feed
-from django.utils.feedgenerator import Atom1Feed
-from django.core.urlresolvers import reverse
-from django.conf import settings
-from django.contrib.sites.models import Site
-from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
-from bookmarks.models import Bookmark
-from django.template.defaultfilters import linebreaks, escape, capfirst
 from datetime import datetime
 
-ITEMS_PER_FEED = getattr(settings, 'PINAX_ITEMS_PER_FEED', 20)
+from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
+from django.contrib.syndication.views import Feed
+from django.contrib.sites.models import Site
+from django.shortcuts import get_object_or_404
+from django.template.defaultfilters import linebreaks, escape
+from django.utils.feedgenerator import Atom1Feed
+
+from settings import ITEMS_PER_FEED, USE_TAGGING
+from models import Bookmark, BookmarkInstance
+
 
 class BookmarkFeed(Feed):
+    def title(self):
+        return 'Bookmarks from %s' % Site.objects.get_current().domain
+    def description(self):
+        return "Latest bookmarks from %s" % Site.objects.get_current().domain    
+    
     def link(self):
-        absolute_url = reverse('bookmarks.views.bookmarks')
-        complete_url = "http://%s%s" % (
+        absolute_url = reverse('rss_all_bookmarks')
+        return "http://%s%s" % (
                 Site.objects.get_current().domain,
                 absolute_url,
             )
-        return complete_url
     
-    def item_id(self, bookmark):
-        return bookmark.url
+    def items(self):
+        return Bookmark.objects.order_by("-added")[:ITEMS_PER_FEED]
     
     def item_title(self, bookmark):
         return bookmark.description
@@ -31,68 +34,67 @@ class BookmarkFeed(Feed):
     def item_description(self, bookmark):
         return linebreaks(escape(bookmark.note))
     
-    def item_updated(self, bookmark):
-        return bookmark.added
+    def item_author_name(self, bookmark):
+        return bookmark.adder.get_full_name() or bookmark.adder.username
     
-    def item_published(self, bookmark):
-        return bookmark.added
+    def item_author_email(self, bookmark):
+        return bookmark.adder.email
     
-    def item_content(self, bookmark):
-        return {"type" : "html", }, linebreaks(escape(bookmark.note))
-    
-    def item_links(self, bookmark):
-        return [{"href" : self.item_id(bookmark)}]
-    
-    def item_authors(self, bookmark):
-        return [{"name" : bookmark.adder.username}]
-    
-#    def author_email():
-#        return bookmark.adder.email
-#    def author_link():
-#        return bookmark.adder.website
-
     def item_pubdate(self, bookmark):
         return bookmark.added
-
-    def item_categories(self, bookmark):
-        from tagging.models import Tag
-#        return Tag.objects.get_for_object(bookmark)
-        return bookmark.all_tags()
-
-    def item_link(self, bookmark):
-        return bookmark.url
-
-    def item_description(self, bookmark):
-        return bookmark.description
-
-    def items(self):
-        print "in bookmarkFeed"
-        return Bookmark.objects.order_by("-added")[:ITEMS_PER_FEED]
-    def feed_id(self):
-        return 'http://%s/feeds/bookmarks/' % Site.objects.get_current().domain
     
-    def feed_title(self):
-        return 'Bookmark Feed'
+    def item_categories(self, bookmark):
+        if USE_TAGGING:
+            from tagging.models import Tag
+            return bookmark.all_tags()
+        else:
+            return bookmark.tags.split(',')
 
-    def feed_updated(self):
-        qs = Bookmark.objects.all()
-        # We return an arbitrary date if there are no results, because there
-        # must be a feed_updated field as per the Atom specifications, however
-        # there is no real data to go by, and an arbitrary date can be static.
-        if qs.count() == 0:
-            return datetime(year=2008, month=7, day=1)
-        return qs.latest('added').added
-
-    def feed_links(self):
-        absolute_url = reverse('bookmarks.views.bookmarks')
-        complete_url = "http://%s%s" % (
+class UserBookmarkFeed(BookmarkFeed):
+    """
+    Bookmark feed for a specific user
+    """
+    def get_object(self, request, username, *args, **kwargs):
+        return get_object_or_404(User, username=username)
+    
+    def title(self, obj):
+        return "Bookmarks saved by %s" % (obj.get_full_name() or obj.username)
+    
+    def description(self, obj):
+        return "Latest bookmarks saved by %s" % (obj.get_full_name() or obj.username)
+    
+    def link(self, obj):
+        absolute_url = reverse('rss_user_bookmarks', kwargs={'username':obj.username})
+        return "http://%s%s" % (
                 Site.objects.get_current().domain,
                 absolute_url,
             )
-        return ({'href': complete_url},)
-
-    def items(self):
-        return Bookmark.objects.order_by("-added")[:ITEMS_PER_FEED]
     
+    def items(self, obj):
+        return BookmarkInstance.objects.filter(user=obj).order_by("-saved")[:ITEMS_PER_FEED]
+    
+    def author_name(self, obj):
+        return obj.get_full_name() or obj.username
+    
+    def author_email(self, obj):
+        return obj.email
+    
+    def item_pubdate(self, bookmark):
+        return bookmark.saved
+    
+
 class AtomBookmarkFeed(BookmarkFeed):
     feed_type = Atom1Feed
+    subtitle = BookmarkFeed.description
+    
+    def feed_guid(self):
+        return self.link()
+
+class AtomUserBookmarkFeed(UserBookmarkFeed):
+    feed_type = Atom1Feed
+    subtitle = UserBookmarkFeed.description
+    
+    def feed_guid(self, obj):
+        return self.link(obj)
+    
+    
