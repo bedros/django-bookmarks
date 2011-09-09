@@ -3,13 +3,12 @@ from django.utils.translation import ugettext_lazy as _
 
 from bookmarks.models import Bookmark, BookmarkInstance
 
-from django.conf import settings
-BOOKMARK_VERIFY_EXISTS = getattr(settings, "BOOKMARK_VERIFY_EXISTS", False)
+from settings import VERIFY_EXISTS
 
 
 class BookmarkInstanceForm(forms.ModelForm):
 
-    url = forms.URLField(label = "URL", verify_exists=BOOKMARK_VERIFY_EXISTS, widget=forms.TextInput(attrs={"size": 40}))
+    url = forms.URLField(label = "URL", verify_exists=VERIFY_EXISTS, widget=forms.TextInput(attrs={"size": 40}))
     description = forms.CharField(max_length=100, widget=forms.TextInput(attrs={"size": 40}))
     redirect = forms.BooleanField(label="Redirect", required=False)
     

@@ -23,14 +23,13 @@ from django.contrib.auth.models import User
 
 from taggit.managers import TaggableManager
 
-from django.conf import settings
-BOOKMARK_VERIFY_EXISTS = getattr(settings, "BOOKMARK_VERIFY_EXISTS", False)
+from settings import VERIFY_EXISTS
 
 
 class Bookmark(models.Model):
 
     # URL is set to false per dc-special ticket #14
-    url = models.URLField(verify_exists=BOOKMARK_VERIFY_EXISTS,unique=True)
+    url = models.URLField(verify_exists=VERIFY_EXISTS,unique=True)
     description = models.CharField(_('description'), max_length=100)
     slug = models.SlugField()
     note = models.TextField(_('note'), blank=True)
