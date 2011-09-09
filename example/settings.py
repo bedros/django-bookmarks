@@ -116,4 +116,5 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'bookmarks',
     'south',
+    'taggit',
 )

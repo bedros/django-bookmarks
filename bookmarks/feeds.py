@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import linebreaks, escape
 from django.utils.feedgenerator import Atom1Feed
 
-from settings import ITEMS_PER_FEED, USE_TAGGING
+from settings import ITEMS_PER_FEED
 from models import Bookmark, BookmarkInstance
 
 
@@ -44,11 +44,7 @@ class BookmarkFeed(Feed):
         return bookmark.added
     
     def item_categories(self, bookmark):
-        if USE_TAGGING:
-            from tagging.models import Tag
-            return bookmark.all_tags()
-        else:
-            return bookmark.tags.split(',')
+        return [tag.name for tag in bookmark.tags.all()]
 
 class UserBookmarkFeed(BookmarkFeed):
     """
