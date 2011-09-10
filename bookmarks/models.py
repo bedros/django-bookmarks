@@ -123,3 +123,8 @@ class BookmarkInstance(models.Model):
             'bookmark': self.bookmark,
             'user': self.user,
         }
+
+    class Meta:
+        permissions = (
+            ('view_bookmark', 'View a private bookmark'),
+        )
