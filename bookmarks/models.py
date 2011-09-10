@@ -29,13 +29,14 @@ from settings import VERIFY_EXISTS, ABSOLUTE_URL_IS_BOOKMARK
 class Bookmark(models.Model):
 
     # URL is set to false per dc-special ticket #14
-    url = models.URLField(verify_exists=VERIFY_EXISTS,unique=True)
+    url = models.URLField(verify_exists=VERIFY_EXISTS, unique=True)
     description = models.CharField(_('description'), max_length=100)
     slug = models.SlugField()
     note = models.TextField(_('note'), blank=True)
 
     has_favicon = models.BooleanField(_('has favicon'))
-    favicon_checked = models.DateTimeField(_('favicon checked'), default=datetime.now)
+    favicon_checked = models.DateTimeField(_('favicon checked'),
+                                           default=datetime.now)
 
     adder = models.ForeignKey(User, blank=True, null=True,
                     related_name="added_bookmarks", verbose_name=_('adder'))
@@ -61,17 +62,21 @@ class Bookmark(models.Model):
         return self.url
 
     if ABSOLUTE_URL_IS_BOOKMARK:
-        def get_absolute_url(self):
+
+        def get_absolute_url_not_permalinked(self):
             return self.url
+        get_absolute_url = get_absolute_url_not_permalinked
     else:
+
         @permalink
-        def get_absolute_url(self):
+        def get_absolute_url_permalinked(self):
             return ('bookmark_detail', None, {
                 'year': self.added.year,
                 'month': self.added.strftime('%b').lower(),
                 'day': self.added.day,
-                'slug': self.slug
+                'slug': self.slug,
             })
+        get_absolute_url = get_absolute_url_permalinked
 
     class Meta:
         ordering = ('-added', )
@@ -79,8 +84,10 @@ class Bookmark(models.Model):
 
 class BookmarkInstance(models.Model):
 
-    bookmark = models.ForeignKey(Bookmark, related_name="saved_instances", verbose_name=_('bookmark'))
-    user = models.ForeignKey(User, related_name="saved_bookmarks", verbose_name=_('user'))
+    bookmark = models.ForeignKey(Bookmark, related_name="saved_instances",
+                                 verbose_name=_('bookmark'))
+    user = models.ForeignKey(User, related_name="saved_bookmarks",
+                             verbose_name=_('user'))
     saved = models.DateTimeField(_('saved'), default=datetime.now)
 
     description = models.CharField(_('description'), max_length=100)
@@ -88,20 +95,23 @@ class BookmarkInstance(models.Model):
 
     tags = TaggableManager()
 
-    def save(self, force_insert=False, force_update=False,edit=False):
+    def save(self, force_insert=False, force_update=False, edit=False):
         if edit:
-            super(BookmarkInstance, self).save(force_insert, True)            
+            super(BookmarkInstance, self).save(force_insert, True)
         else:
             # new bookmark/bookmark instance so add the new bookmark
             try:
                 bookmark = Bookmark.objects.get(url=self.url)
             except Bookmark.DoesNotExist:
-                # has_favicon=False is temporary as the view for adding bookmarks will change it
-                bookmark = Bookmark(url=self.url, description=self.description, note=self.note, has_favicon=False, adder=self.user)
+                # has_favicon=False is temporary as the view for adding
+                # bookmarks will change it
+                bookmark = Bookmark(url=self.url, description=self.description,
+                                    note=self.note, has_favicon=False,
+                                    adder=self.user)
                 bookmark.save()
             self.bookmark = bookmark
             super(BookmarkInstance, self).save(force_insert, force_update)
-    
+
     def delete(self):
         bookmark = self.bookmark
         super(BookmarkInstance, self).delete()
@@ -109,4 +119,7 @@ class BookmarkInstance(models.Model):
             bookmark.delete()
 
     def __unicode__(self):
-        return _("%(bookmark)s for %(user)s") % {'bookmark':self.bookmark, 'user':self.user}
+        return _("%(bookmark)s for %(user)s") % {
+            'bookmark': self.bookmark,
+            'user': self.user,
+        }

@@ -1,5 +1,6 @@
 VERSION = (0, 2, 0, "final")
 
+
 def get_version():
     if VERSION[3] != "final":
         return "%s.%s.%s%s" % (VERSION[0], VERSION[1], VERSION[2], VERSION[3])
