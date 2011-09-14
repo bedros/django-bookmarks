@@ -62,10 +62,7 @@ class BookmarkInstanceEditForm(forms.ModelForm):
         self.fields.keyOrder = ['description', 'note', 'tags', 'redirect']
 
     def should_redirect(self):
-        if self.cleaned_data["redirect"]:
-            return True
-        else:
-            return False
+        return self.cleaned_data["redirect"]
 
     class Meta:
         model = BookmarkInstance
