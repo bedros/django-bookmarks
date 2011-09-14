@@ -1,31 +1,20 @@
-{% extends "bookmarks/base.html" %}
+{% extends "base.html" %}
 
 {% load i18n %}
-{% load uni_form %}
 
 {% block head_title %}{% blocktrans %}Edit Bookmark{% endblocktrans %}{% endblock %}
 
 
-{% block body %}
+{% block content %}
     <h1>{% trans "Edit Bookmark" %}</h1>    
     
     <p>You can drag this '<a href="{{ bookmarklet }}">Add to {{ site_name }} Bookmarks</a>' link to your bookmark bar to post the pages you visit!</p>
-    
 
-    <form method="POST" action="" id="bookmark_instance_edit_form" class="uniForm">                  
-            {{ bookmark_form|as_uni_form }}            
+    <form method="post" action="" id="bookmark_instance_edit_form" class="uniForm">
+        <fieldset class="inlineLabels">
+            <legend>* Required fields</legend>
+            {{ bookmark_form }}
             <div class = "form_block"><input type="submit" value="{% trans 'save bookmark changes' %}"></div>
+        </fieldset>
     </form>
 {% endblock %}
-
-
-{% block extra_body %}
-    {% load jquery_validation %}
-    {% include_validation %}
-    <script type="text/javascript">
-        $(function(){
-            $('#bookmark_instance_edit_form').validate('{% url bookmark_instance_edit_form_validate %}', {type: 'table'});
-        });
-    </script>
-{% endblock %}
-
