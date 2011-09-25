@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 
-from bookmarks.models import BookmarkInstance
+from bookmarks.models import Bookmark, BookmarkInstance
 
 from settings import VERIFY_EXISTS
 
@@ -38,12 +38,16 @@ class BookmarkInstanceForm(forms.ModelForm):
         return bool(self.cleaned_data["redirect"])
 
     def save(self, commit=True):
-        self.instance.url = self.cleaned_data['url']
+        url = self.cleaned_data['url']
+        bookmark = Bookmark.objects.get_or_create(url=url, defaults={
+            'adder': self.user,
+        })[0]
+        self.instance.bookmark = bookmark
         return super(BookmarkInstanceForm, self).save(commit)
 
     class Meta:
         model = BookmarkInstance
-        #fields = ('url', 'description', 'note', 'redirect')
+        fields = ('description', 'note', 'redirect', 'tags')
 
 
 class BookmarkInstanceEditForm(forms.ModelForm):
@@ -63,7 +67,7 @@ class BookmarkInstanceEditForm(forms.ModelForm):
 
     class Meta:
         model = BookmarkInstance
-        #fields = ('description', 'note', 'redirect')
+        fields = ('description', 'note', 'redirect', 'tags')
 
     def clean(self):
         # The Bookmark Instance doesn't have a url field, as we can't

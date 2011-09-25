@@ -61,6 +61,7 @@ def add(request):
             bookmark_instance = bookmark_form.save(commit=False)
             bookmark_instance.user = request.user
             bookmark_instance.save()
+            bookmark_form.save_m2m()  # needed for tags
             bookmark = bookmark_instance.bookmark
 
             try:
@@ -147,6 +148,7 @@ def edit(request, bookmark_instance_id):
             bookmark_instance = bookmark_form.save(commit=False)
             bookmark_instance.user = request.user
             bookmark_instance.save(edit=True)
+            bookmark_form.save_m2m()  # needed for tags
 
             if request.POST.get('redirect', None):
                 return HttpResponseRedirect(bookmark_instance.bookmark.url)
