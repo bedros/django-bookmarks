@@ -10,10 +10,10 @@
     
     <p>You can drag this '<a href="{{ bookmarklet }}">Add to {{ site_name }} Bookmarks</a>' link to your bookmark bar to post the pages you visit!</p>
 
-    <form method="post" action="" id="bookmark_instance_edit_form" class="uniForm">
+    <form method="post" action="" id="bookmark_instance_edit_form">
         <fieldset class="inlineLabels">
             <legend>* Required fields</legend>
-            {{ bookmark_form }}
+            {{ form }}
             <div class = "form_block"><input type="submit" value="{% trans 'save bookmark changes' %}"></div>
         </fieldset>
     </form>

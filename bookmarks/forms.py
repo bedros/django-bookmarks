@@ -43,6 +43,7 @@ class BookmarkInstanceForm(forms.ModelForm):
             'adder': self.user,
         })[0]
         self.instance.bookmark = bookmark
+        self.instance.user = self.user
         return super(BookmarkInstanceForm, self).save(commit)
 
     class Meta:
