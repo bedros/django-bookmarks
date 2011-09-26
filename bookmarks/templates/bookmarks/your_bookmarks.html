@@ -1,25 +1,19 @@
-{% extends "bookmarks/base.html" %}
+{% extends "base.html" %}
 
 {% load i18n %}
-{% load pagination_tags %}
-{% load avatar_tags %}
-{% load extra_tagging_tags %}
 
-{% block head_title %}{% blocktrans %}Your Bookmarks{% endblocktrans %}{% endblock %}
+{% block title %}{% blocktrans %}Your Bookmarks{% endblocktrans %}{% endblock %}
 
-{% block body %}
+{% block content %}
     <h1>{% trans "Your Bookmarks" %}</h1>
     
     {% if bookmark_instances %}
-        {% autopaginate bookmark_instances %}
-        
         <table class="bookmarks narrow">
             {% for bookmark_instance in bookmark_instances %}
                 <tr class="{% cycle odd,even %}">
                     <td class="meta">
-                        <div class="avatar">{% avatar bookmark_instance.bookmark.adder 40 %}</div>
                         <div class="date">{{ bookmark_instance.bookmark.added|date }}</div>
-                        <div class="details"><a href="{% url profiles.views.profile bookmark_instance.bookmark.adder.username %}">{{ bookmark_instance.bookmark.adder }}</a></div>
+                        <div class="details">{{ bookmark_instance.bookmark.adder }}</div>
                     </td>
                     <td>
                         <h2><a href="{{ bookmark_instance.bookmark.url }}">{{ bookmark_instance.description }}</a></h2>
@@ -36,9 +30,6 @@
                 </tr>
             {% endfor %}
         </table>
-        
-        {% paginate %}
-        
     {% else %}
         <p>{% trans "No bookmarks yet." %}</p>
     {% endif %}
