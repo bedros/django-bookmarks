@@ -131,10 +131,11 @@ class BookmarkAddView(CreateView, BookmarkManipulationMixin):
 
 class BookmarkDeleteView(DeleteView):
 
+    model = BookmarkInstance
+
     def get_queryset(self):
-        return BookmarkInstance.objects \
-                               .filter(id=self.kwargs['pk'],
-                                       user=self.request.user)
+        return self.model.objects.filter(id=self.kwargs['pk'],
+                                         user=self.request.user)
 
     def get_success_url(self):
         messages.success(self.request, _('Bookmark Deleted'))
