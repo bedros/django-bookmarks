@@ -1,6 +1,7 @@
 from datetime import datetime
 import urllib2
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -77,8 +78,7 @@ class BookmarkManipulationMixin(object):
             # redirect to bookmark URL
             return self.object.bookmark.url
         else:
-            self.request.user.message_set \
-                        .create(message=self.user_success_msg() % {
+            messages.success(self.request, self.user_success_msg() % {
                 'description': self.object.description,
             })
             return reverse(self.success_view)
@@ -137,8 +137,7 @@ class BookmarkDeleteView(DeleteView):
                                        user=self.request.user)
 
     def get_success_url(self):
-        self.request.user.message_set \
-                    .create(message=unicode(_('Bookmark Deleted')))
+        messages.success(self.request, _('Bookmark Deleted'))
         return self.request.GET.get('next',
                                     reverse("bookmarks.views.bookmarks"))
 
