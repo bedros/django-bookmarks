@@ -5,12 +5,12 @@ from voting.views import vote_on_object
 from bookmarks.models import Bookmark
 from bookmarks.forms import BookmarkInstanceForm, BookmarkInstanceEditForm
 
-DETAIL_REGEX = r'''\
-^(?P<year>\d{4})/(?P<month>\w{3})/(?P<day>\d{1,2})/(?P<slug>[-\w]+)/$'''
+DETAIL_REGEX = r'^(?P<year>\d{4})/(?P<month>\w{3})/(?P<day>\d{1,2})/' \
+               r'(?P<slug>[-\w]+)/$'
 
 urlpatterns = patterns('',
     url(r'^$', 'bookmarks.views.bookmarks', name="all_bookmarks"),
-    url(DETAIL_REGEX, view='bookmarks.views.bookmark_detail',
+    url(DETAIL_REGEX, 'bookmarks.views.bookmark_detail',
         name='bookmark_detail'),
     url(r'^your_bookmarks/$', 'bookmarks.views.your_bookmarks',
         name="your_bookmarks"),
